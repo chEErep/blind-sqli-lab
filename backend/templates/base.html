@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ПодСлушано{% endblock %}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#eef1ec; --surface:#ffffff; --brd:#e2e7df;
+      --text:#233029; --muted:#6f7c72;
+      --green:#4e7a5e; --green-d:#3d6249; --soft:#e7efe8;
+    }
+    body{
+      font-family:system-ui,Segoe UI,Arial,sans-serif;color:var(--text);
+      background:var(--bg);min-height:100vh;line-height:1.5;
+      background-image:
+        radial-gradient(38vw 38vw at 96% -8%,rgba(78,122,94,.10),transparent 60%),
+        radial-gradient(30vw 30vw at -6% 108%,rgba(78,122,94,.08),transparent 60%);
+      background-attachment:fixed;
+    }
+    a{color:var(--green);text-decoration:none}
+    a:hover{color:var(--green-d)}
+    .wrap{max-width:1060px;margin:0 auto;padding:0 22px}
+
+    header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.85);
+      backdrop-filter:blur(10px);border-bottom:1px solid var(--brd)}
+    .bar{display:flex;align-items:center;justify-content:space-between;height:64px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;color:var(--green)}
+    .logo{width:34px;height:34px;border-radius:9px;background:var(--green);
+      display:flex;align-items:flex-end;justify-content:center;gap:2.5px;padding-bottom:8px}
+    .logo i{display:block;width:3px;border-radius:3px;background:#fff}
+    .logo i:nth-child(1){height:9px}.logo i:nth-child(2){height:16px}
+    .logo i:nth-child(3){height:12px}.logo i:nth-child(4){height:7px}
+    .nav{display:flex;align-items:center;gap:16px;font-size:14px}
+    .chip{display:flex;align-items:center;gap:8px;padding:5px 12px;border:1px solid var(--brd);
+      border-radius:999px;background:var(--soft);font-size:13px;color:var(--text)}
+    .chip .dot{width:24px;height:24px;border-radius:50%;background:var(--green);color:#fff;
+      display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+
+    .flash{max-width:1060px;margin:16px auto 0;padding:0 22px}
+    .flash .msg{background:var(--soft);border:1px solid #cfe0d3;color:var(--green-d);
+      padding:11px 14px;border-radius:10px;font-size:14px}
+
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;
+      border-radius:9px;padding:12px 22px;font-size:15px;font-weight:600;color:#fff;
+      background:var(--green);cursor:pointer;transition:background .15s,transform .15s}
+    .btn:hover{background:var(--green-d);transform:translateY(-1px)}
+    .btn.full{width:100%}
+
+    label{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
+    input{width:100%;padding:12px 14px;border-radius:9px;color:var(--text);font-size:15px;
+      background:#fff;border:1px solid #d7ded6;outline:none;transition:border-color .15s,box-shadow .15s}
+    input::placeholder{color:#a6b0a8}
+    input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(78,122,94,.15)}
+
+    .card{background:var(--surface);border:1px solid var(--brd);border-radius:14px;
+      box-shadow:0 10px 30px rgba(35,48,41,.06)}
+    .muted{color:var(--muted)}
+    .accent{color:var(--green)}
+    h1{font-size:30px;font-weight:800;letter-spacing:.2px}
+    h2{font-size:21px;font-weight:700}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap bar">
+      <a class="brand" href="/">
+        <span class="logo"><i></i><i></i><i></i><i></i></span>
+        <span>ПодСлушано</span>
+      </a>
+      <nav class="nav">
+        {% if session.get('username') %}
+          <a class="chip" href="/profile"><span class="dot">{{ session['username'][0]|upper }}</span>{{ session['username'] }}</a>
+          <a href="/logout">Выйти</a>
+        {% else %}
+          <a href="/forgot">Забыли пароль?</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  {% with msgs = get_flashed_messages() %}
+    {% if msgs %}<div class="flash">{% for m in msgs %}<div class="msg">{{ m }}</div>{% endfor %}</div>{% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</body>
+</html>

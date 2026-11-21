@@ -1,0 +1,50 @@
+# ============================================================
+#  Учебный стенд: Blind SQL Injection (Time-based)
+#  Поднимает 2 сервиса: база MySQL + бэкенд на Flask.
+#  Запуск:    docker compose up --build
+#  Остановка: docker compose down -v   (-v удаляет данные БД)
+# ============================================================
+services:
+  db:
+    image: mysql:8.0
+    container_name: sqli-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: appdb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppass
+    volumes:
+      # init.sql выполняется автоматически при ПЕРВОМ старте пустой базы
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "3306:3306"          # доступ к БД с хоста (удобно для отладки)
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  backend:
+    build: ./backend
+    container_name: sqli-backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_USER: appuser
+      DB_PASSWORD: apppass
+      DB_NAME: appdb
+      # true  -> безопасная (параметризованная) версия запроса
+      # false -> уязвимая версия (которую ты реализуешь в app.py)
+      SAFE_MODE: "false"
+      MUSIC_DIR: /app/music
+    volumes:
+      # папка с песнями и обложками (плейлисты = подпапки music/)
+      - ../music:/app/music:ro
+    ports:
+      # 8000 на хосте, чтобы не конфликтовать с Burp (он сам занимает 8080)
+      - "8000:8080"          # сайт будет на http://localhost:8000
+    depends_on:
+      db:
+        condition: service_healthy

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Новый пароль - ПодСлушано{% endblock %}
+{% block content %}
+<style>
+  .center{min-height:calc(100vh - 64px);display:flex;align-items:center;justify-content:center;padding:40px 22px}
+  .auth-card{width:100%;max-width:400px;padding:30px}
+</style>
+<div class="center">
+  <div class="card auth-card">
+    <h2>Новый пароль</h2>
+    <p class="muted" style="font-size:13px;margin-top:6px">Задай новый пароль для входа в аккаунт.</p>
+    <form method="post" action="/reset">
+      <label>Токен сброса</label>
+      <input name="token" value="{{ token }}" placeholder="токен из ссылки">
+      <label>Новый пароль</label>
+      <input name="password" type="password" placeholder="••••••••">
+      <button class="btn full" type="submit" style="margin-top:20px">Сменить пароль</button>
+    </form>
+    <p style="margin-top:16px;font-size:13px"><a href="/">← ко входу</a></p>
+  </div>
+</div>
+{% endblock %}

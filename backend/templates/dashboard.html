@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Моя музыка - ПодСлушано{% endblock %}
+{% block content %}
+<style>
+  .dash{padding:30px 0 140px}
+  .hi{font-size:26px;font-weight:800}
+  .admin{margin-top:16px;border:1px solid #e6cfa0;background:#fbf3e0;color:#8a6d2f;
+    border-radius:12px;padding:13px 16px;font-size:14px}
+  .sec{margin-top:18px}
+  .grid{margin-top:16px;display:grid;gap:24px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+  @media(min-width:820px){.grid{grid-template-columns:repeat(3,1fr)}}
+  .plcard{cursor:pointer}
+  .cov{position:relative;aspect-ratio:1;border-radius:16px;overflow:hidden;background:#dfe6df;
+    box-shadow:0 12px 28px rgba(35,48,41,.14);transition:transform .15s;
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:52px}
+  .cov img{width:100%;height:100%;object-fit:cover;display:block}
+  .cov.mine{background:linear-gradient(135deg,#4e7a5e,#93c4a2)}
+  .cov.big{width:160px;height:160px;flex:none;aspect-ratio:auto;border-radius:14px;font-size:64px}
+  .play{position:absolute;right:12px;bottom:12px;width:48px;height:48px;border-radius:50%;
+    background:#fff;color:var(--green);display:flex;align-items:center;justify-content:center;
+    font-size:16px;box-shadow:0 6px 16px rgba(35,48,41,.22);opacity:0;transform:translateY(6px);transition:.16s}
+  .plcard:hover .cov{transform:translateY(-6px)}
+  .plcard:hover .play{opacity:1;transform:translateY(0)}
+  .plcard .t{margin-top:13px;font-weight:600;font-size:18px}
+  .plcard .s{color:var(--muted);font-size:14px}
+  .back{cursor:pointer;color:var(--green);font-size:14px;display:inline-block;margin-bottom:14px}
+  .plhead{display:flex;gap:22px;align-items:flex-end;flex-wrap:wrap}
+  .tracks{margin-top:20px;border:1px solid var(--brd);border-radius:12px;background:#fff;overflow:hidden}
+  .trow{display:flex;align-items:center;gap:14px;padding:13px 16px;cursor:pointer;border-top:1px solid #eef2ec}
+  .trow:first-child{border-top:0}
+  .trow:hover{background:var(--soft)}
+  .trow.active{background:var(--soft)}
+  .trow.active .tp{color:var(--green)}
+  .trow .num{width:22px;text-align:center;color:var(--muted);font-size:14px}
+  .trow .ti{flex:1;min-width:0}
+  .trow .tt{font-weight:600;font-size:15px}
+  .trow .ta{font-size:13px}
+  .sv{background:none;border:0;cursor:pointer;font-size:19px;color:var(--green);flex:none;width:34px;line-height:1}
+  .empty{padding:26px;text-align:center}
+
+  .np{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--brd);
+    box-shadow:0 -6px 20px rgba(35,48,41,.08);padding:12px 22px;display:flex;align-items:center;gap:14px;z-index:30}
+  .np.hidden{display:none}
+  .np .sw{width:50px;height:50px;border-radius:8px;object-fit:cover;flex:none;background:#dfe6df}
+  .np .meta{min-width:120px;max-width:220px}
+  .np .tt2{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .np .ta2{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .np .npsv{background:none;border:0;cursor:pointer;font-size:22px;color:var(--green);flex:none}
+  .np .pp{width:46px;height:46px;border-radius:50%;background:var(--green);color:#fff;border:0;cursor:pointer;font-size:16px;flex:none}
+  .np .pp:hover{background:var(--green-d)}
+  .np .tw{flex:1;display:flex;align-items:center;gap:12px}
+  .np .prog{flex:1;height:7px;background:#e6ebe4;border-radius:4px;overflow:hidden;cursor:pointer}
+  .np .fill{height:100%;width:0;background:var(--green)}
+  .np .time{font-size:12px;color:var(--muted);white-space:nowrap;min-width:84px;text-align:right}
+  @media(max-width:640px){.np .time{display:none}}
+
+  .egg{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
+    gap:4vw;background:rgba(0,0,0,.82);cursor:pointer;flex-wrap:wrap}
+  .egg.hidden{display:none}
+  .egg img{max-width:44vw;max-height:80vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.6);
+    animation:pop .5s cubic-bezier(.2,1.5,.4,1) both}
+  .egg img:nth-child(2){animation-delay:.14s}
+  .egg .hint{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:#fff;opacity:.7;font-size:14px}
+  @keyframes pop{from{transform:scale(.2) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+</style>
+
+<div class="wrap dash">
+  <div class="hi">С возвращением, <span class="accent">{{ username }}</span></div>
+  {% if username == "administrator" %}
+    <div class="admin">Это аккаунт администратора. Если ты вошёл сюда после сброса пароля по украденному токену - угон удался (демонстрация эксплуатации).</div>
+  {% endif %}
+  <div id="view"></div>
+</div>
+
+<audio id="au"></audio>
+
+<div id="np" class="np hidden">
+  <img class="sw" id="npcov" alt="">
+  <div class="meta"><div class="tt2" id="nptitle"></div><div class="ta2 muted" id="npartist"></div></div>
+  <button class="npsv" id="npsv" title="В Мои треки" onclick="toggleSaveCur()">♡</button>
+  <button class="pp" id="ppbtn" onclick="toggle()">▶</button>
+  <div class="tw">
+    <div class="prog" id="prog" onclick="seek(event)"><div class="fill" id="fill"></div></div>
+    <div class="time"><span id="tcur">0:00</span> / <span id="tdur">0:00</span></div>
+  </div>
+</div>
+
+<div id="egg" class="egg hidden" onclick="hideEgg()"></div>
+
+<script>
+const PLAYLISTS = {{ playlists|tojson }};
+const EGG_GIFS = {{ egg_gifs|tojson }};
+const view=document.getElementById('view');
+const au=document.getElementById('au');
+const np=document.getElementById('np');
+const egg=document.getElementById('egg');
+const MYKEY='podslushano_my';
+let cur=null, curView={t:'list'};
+
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmt(s){if(!s||isNaN(s))return '0:00';s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function coverInner(p){return p.cover?`<img src="${p.cover}" alt="">`:`♫`;}
+function loadMy(){try{return JSON.parse(localStorage.getItem(MYKEY)||'[]');}catch(e){return [];}}
+function saveMy(a){localStorage.setItem(MYKEY,JSON.stringify(a));}
+function isSaved(src){return loadMy().some(t=>t.src===src);}
+
+function rerender(){ if(curView.t==='pl')openPlaylist(curView.i); else if(curView.t==='my')openMyTracks(); else renderPlaylists(); }
+
+function renderPlaylists(){
+  curView={t:'list'};
+  const my=loadMy();
+  let cards=`<div class="plcard" onclick="openMyTracks()">
+      <div class="cov mine">♥<span class="play">▶</span></div>
+      <div class="t">Мои треки</div><div class="s">${my.length} трек(ов)</div></div>`;
+  cards+=PLAYLISTS.map((p,i)=>`
+    <div class="plcard" onclick="openPlaylist(${i})">
+      <div class="cov">${coverInner(p)}<span class="play">▶</span></div>
+      <div class="t">${esc(p.name)}</div><div class="s">${p.tracks.length} трек(ов)</div></div>`).join('');
+  view.innerHTML=`<div class="sec"><h2>Плейлисты</h2></div><div class="grid">${cards}</div>`;
+}
+
+function openPlaylist(i){curView={t:'pl',i:i};const p=PLAYLISTS[i];
+  view.innerHTML=`<div class="back" onclick="renderPlaylists()">← Все плейлисты</div>
+   <div class="plhead"><div class="cov big">${coverInner(p)}</div>
+     <div><div class="muted" style="font-size:13px">Плейлист</div>
+     <h1>${esc(p.name)}</h1><div class="muted">${p.tracks.length} трек(ов)</div></div></div>
+   ${p.tracks.length?`<div class="tracks">${p.tracks.map((t,j)=>`
+     <div class="trow" data-src="${esc(t.src)}" onclick="playIdx(${i},${j})">
+       <div class="num">${j+1}</div>
+       <div class="ti"><div class="tt">${esc(t.title)}</div><div class="ta muted">${esc(t.artist)}</div></div>
+       <button class="sv" title="В Мои треки" onclick="event.stopPropagation();toggleSaveIdx(${i},${j})">${isSaved(t.src)?'♥':'♡'}</button>
+     </div>`).join('')}</div>`
+    :`<div class="empty muted">Здесь пока нет треков. Добавь mp3 в папку плейлиста.</div>`}`;
+  markActive();
+}
+
+function openMyTracks(){curView={t:'my'};const my=loadMy();
+  view.innerHTML=`<div class="back" onclick="renderPlaylists()">← Все плейлисты</div>
+   <div class="plhead"><div class="cov big mine">♥</div>
+     <div><div class="muted" style="font-size:13px">Плейлист</div>
+     <h1>Мои треки</h1><div class="muted">${my.length} трек(ов)</div></div></div>
+   ${my.length?`<div class="tracks">${my.map((t,j)=>`
+     <div class="trow" data-src="${esc(t.src)}" onclick="playMy(${j})">
+       <div class="num">${j+1}</div>
+       <div class="ti"><div class="tt">${esc(t.title)}</div><div class="ta muted">${esc(t.artist)}</div></div>
+       <button class="sv" title="Убрать" onclick="event.stopPropagation();removeMy(${j})">♥</button>
+     </div>`).join('')}</div>`
+    :`<div class="empty muted">Пока пусто. Нажми ♡ у любого трека, чтобы добавить его сюда.</div>`}`;
+  markActive();
+}
+
+function mkTrack(p,t){return {title:t.title,artist:t.artist,src:t.src,egg:t.egg,cover:p.cover,pl:p.name};}
+function playIdx(i,j){play(mkTrack(PLAYLISTS[i],PLAYLISTS[i].tracks[j]));}
+function playMy(j){const t=loadMy()[j];if(t)play(t);}
+
+function play(t){cur=t;
+  au.src=t.src;au.play().catch(()=>{});
+  np.classList.remove('hidden');
+  document.getElementById('npcov').src=t.cover||'';
+  document.getElementById('nptitle').textContent=t.title;
+  document.getElementById('npartist').textContent=(t.artist?t.artist+' · ':'')+(t.pl||'');
+  markActive();updateNpSave();
+  if(t.egg) showEgg(); else hideEgg();
+}
+function toggle(){if(!cur)return; if(au.paused)au.play().catch(()=>{}); else au.pause();}
+function seek(e){if(!au.duration)return;const r=e.currentTarget.getBoundingClientRect();
+  au.currentTime=(e.clientX-r.left)/r.width*au.duration;}
+function markActive(){document.querySelectorAll('.trow').forEach(r=>{
+  r.classList.toggle('active', !!cur && r.dataset.src===cur.src);});}
+
+function toggleSaveIdx(i,j){toggleSaveTrack(mkTrack(PLAYLISTS[i],PLAYLISTS[i].tracks[j]));rerender();}
+function toggleSaveCur(){if(!cur)return;toggleSaveTrack(cur);updateNpSave();rerender();}
+function toggleSaveTrack(t){let a=loadMy();const k=a.findIndex(x=>x.src===t.src);
+  if(k>=0)a.splice(k,1); else a.push(t); saveMy(a);}
+function removeMy(j){let a=loadMy();a.splice(j,1);saveMy(a);openMyTracks();updateNpSave();}
+function updateNpSave(){const b=document.getElementById('npsv');if(cur)b.textContent=isSaved(cur.src)?'♥':'♡';}
+
+au.addEventListener('play',()=>{document.getElementById('ppbtn').textContent='⏸';});
+au.addEventListener('pause',()=>{document.getElementById('ppbtn').textContent='▶';});
+au.addEventListener('timeupdate',()=>{
+  const d=au.duration||0,c=au.currentTime||0;
+  document.getElementById('fill').style.width=(d?c/d*100:0)+'%';
+  document.getElementById('tcur').textContent=fmt(c);
+  document.getElementById('tdur').textContent=fmt(d);});
+au.addEventListener('ended',hideEgg);
+
+function showEgg(){if(!EGG_GIFS.length)return;
+  egg.innerHTML=EGG_GIFS.map(g=>`<img src="${g}" alt="">`).join('')+`<div class="hint">клик, чтобы закрыть</div>`;
+  egg.classList.remove('hidden');}
+function hideEgg(){egg.classList.add('hidden');egg.innerHTML='';}
+
+renderPlaylists();
+</script>
+{% endblock %}

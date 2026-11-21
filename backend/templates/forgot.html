@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Восстановление пароля - ПодСлушано{% endblock %}
+{% block content %}
+<style>
+  .center{min-height:calc(100vh - 64px);display:flex;align-items:center;justify-content:center;padding:40px 22px}
+  .auth-card{width:100%;max-width:400px;padding:30px}
+</style>
+<div class="center">
+  <div class="card auth-card">
+    <h2>Восстановление пароля</h2>
+    <p class="muted" style="font-size:13px;margin-top:6px">Введи email, пришлём ссылку для сброса пароля.</p>
+    <form method="post" action="/forgot">
+      <label>Email</label>
+      <input name="email" placeholder="you@demo.local">
+      <button class="btn full" type="submit" style="margin-top:20px">Отправить ссылку</button>
+    </form>
+    <p style="margin-top:16px;font-size:13px"><a href="/">← ко входу</a></p>
+  </div>
+</div>
+{% endblock %}

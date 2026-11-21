@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Вход - ПодСлушано{% endblock %}
+{% block content %}
+<style>
+  .auth{display:flex;gap:48px;align-items:center;flex-wrap:wrap;
+    min-height:calc(100vh - 64px);padding:40px 22px}
+  .hero{flex:1 1 360px;max-width:520px}
+  .big{font-size:48px;line-height:1.08;font-weight:800;color:var(--text)}
+  .lead{font-size:17px;margin-top:18px;max-width:450px}
+  .tags{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap}
+  .tags span{font-size:13px;color:var(--green-d);border:1px solid var(--brd);
+    background:var(--soft);padding:7px 14px;border-radius:999px}
+  .login{flex:1 1 320px;max-width:380px;padding:30px}
+  .row{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-size:13px}
+</style>
+<div class="wrap auth">
+  <section class="hero">
+    <h1 class="big">Вся твоя музыка<br><span class="accent">в одном ПодСлушано</span></h1>
+    <p class="lead muted">Миллионы треков, плейлисты под любое настроение и любимые альбомы, всегда под рукой.</p>
+    <div class="tags"><span>Плейлисты</span><span>Подкасты</span><span>Радио</span><span>Hi-Fi звук</span></div>
+  </section>
+
+  <section class="card login">
+    <h2>Вход</h2>
+    <p class="muted" style="font-size:13px;margin-top:4px">Войди, чтобы слушать</p>
+    <form method="post" action="/login">
+      <label>Логин</label>
+      <input name="username" autocomplete="username" placeholder="cheerep">
+      <label>Пароль</label>
+      <input name="password" type="password" autocomplete="current-password" placeholder="••••••••">
+      <button class="btn full" type="submit" style="margin-top:20px">Войти</button>
+    </form>
+    <div class="row">
+      <a href="/forgot">Забыли пароль?</a>
+      <span class="muted" style="font-size:12px">вход: cheerep / cheerep123</span>
+    </div>
+    <p style="margin-top:14px;font-size:13px;text-align:center"><a href="/register">Нет аккаунта? Регистрация</a></p>
+  </section>
+</div>
+{% endblock %}
